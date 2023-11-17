@@ -1,0 +1,103 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+
+
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+html {
+    font-family: 'Nunito Sans', sans-serif;
+    src: url("./Inter/static/Inter-Medium.ttf");
+}
+
+/* container rectangle and swirl background images , url('../images/Swirl.svg')*/
+.rec-swirl-cube-bg{
+    background-image: url('../images/Cubes.svg'), url('../images/Swirl.svg');
+    background-position: center top; 
+    background-size: 100% 100%;
+    background-repeat: no-repeat no-repeat; 
+    background-attachment:fixed ; /* Add this property */
+}
+/* container swirl background*/
+.rec-cube-bg{
+    background-image: url('../images/Cubes.svg');
+    background-position: center top; 
+    background-size: 100% 100%;
+    background-repeat: no-repeat no-repeat; 
+    background-attachment: fixed; /* Add this property */
+}
+
+/* logo linear gradient */
+.logo-text-gradient {
+    background: radial-gradient(95.19% 12441.23% at 5.56% 79.01%, #EB568E 0%, #144EE3 100%);
+    -webkit-background-clip: text; 
+    background-clip: text;
+    color: transparent; 
+}
+
+/* box shadow for signup button */
+.box-shadowbtn{
+    box-shadow: 10px 9px 22px rgba(20, 78, 227, 0.38);
+}
+
+/* shorten long links linear gradient */
+.shortenlinks-gradient{
+    background: linear-gradient(89.92deg, #144EE3 -0.02%, #EB568E 18.86%, #A353AA 64.49%, #144EE3 100.67%);
+    -webkit-background-clip: text; 
+    background-clip: text;
+    color: transparent; 
+}
+
+/* table grid main */
+.table-grid-container{
+    display: grid;
+    grid-template-columns: repeat(1, 100%);
+    grid-template-rows: repeat(5, minmax(63px, auto));
+    gap: 0.30rem;
+   
+  
+}
+
+/* inner table grid  */
+.table-grid-head{
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-column-gap: 2rem;
+    align-items: center;
+
+}
+
+.text-ellipsis {
+    max-width: 100%; /* Ensure the element doesn't exceed its container */
+    overflow: hidden; /* Hide overflowing content */
+    text-overflow: ellipsis; 
+    white-space: nowrap; /* Prevent text from wrapping */
+}
+
+
+.box-shadow-userlanding {
+    background: #181E29;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(14px);    
+}
+
+.blur-top{
+    background: #144EE3;
+    opacity: 0.92;
+    border: 1px solid #144EE3;
+    box-shadow: 10px 9px 22px rgba(20, 78, 227, 0.38);
+    filter: blur(8.5px);
+    transform: matrix(1, 0, 0, -1, 0, 0);
+}
+
+
+
+
+
+
+
