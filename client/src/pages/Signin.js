@@ -3,7 +3,7 @@ import axios from 'axios'
 import {Link, useNavigate} from "react-router-dom"
 import { useState, useEffect } from 'react';
 import { useGlobalContext } from '../context';
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 import { customToastError, customToastSuccess } from '../assets/toastStyles'; 
 import loadingImage from '../images/loading.svg'
 import { BsEye } from "react-icons/bs";
@@ -14,7 +14,7 @@ const Signin = () => {
 
     const navigate = useNavigate();
 
-    const {allUserMongoData, fetchUserData} =  useGlobalContext();
+    const { fetchUserData, baseURL} =  useGlobalContext();
 
     //screen width----------------------------------------
     const [screenWidth, setScreenWidth] = useState(window.innerWidth);
@@ -58,7 +58,7 @@ const Signin = () => {
     
         try {
             //send form data to backend
-            const signInResp =  await axios.post('/api/signin', {...signinValues})
+            const signInResp =  await axios.post(`${baseURL}/api/signin`, {...signinValues})
             const signIndata = signInResp.data;
     
             //checks if data contains any errors

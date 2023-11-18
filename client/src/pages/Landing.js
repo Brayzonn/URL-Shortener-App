@@ -17,7 +17,7 @@ import { FcCheckmark } from "react-icons/fc";
 
 const Landing = () => {
 
-  const {fetchNonuserData, nonuserData} =  useGlobalContext();
+  const {fetchNonuserData, nonuserData, baseURL} =  useGlobalContext();
   const [nonUserData, updateNonUserData] = useState([])
   const [updateLinks ,updateLinksRemaining] = useState(3);
   const [ispageLoading, updateIsPageLoading] = useState(true)
@@ -35,14 +35,6 @@ const Landing = () => {
       updateIsPageLoading(false)
     } 
   }, [fetchNonuserData]);
-
-  
-
-
-
-
-
-
 
   //date format -----
   const formatDate = (dateString) => {
@@ -89,7 +81,7 @@ const Landing = () => {
   
       try {
           //send form data to backend
-          const submitResponse =  await axios.post('/api/submiturl', {...linkValue})
+          const submitResponse =  await axios.post(`${baseURL}/api/submiturl`, {...linkValue})
           const submitData = submitResponse.data;
           
           // checks if data contains any errors

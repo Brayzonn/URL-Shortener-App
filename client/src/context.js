@@ -7,13 +7,16 @@ const AppContext = React.createContext();
 
 const AppProvider = ({ children }) => {
 
+    //base url
+    const [baseURL, updateBaseUrl] = useState('https://link-shortener-server.onrender.com')
+
     //non users data
     const [nonuserData, updatenonuserData]  = useState([])
 
     const fetchNonuserData = async () =>{
       try {
         // Fetch all mongodb data for non user
-        const nonUserResponse = await axios.get('/api/getfreeurl');
+        const nonUserResponse = await axios.get(`${baseURL}/api/getfreeurl`);
         const nonUserData = nonUserResponse.data;
         updatenonuserData(nonUserData)
       } catch (error) {
@@ -35,7 +38,7 @@ const AppProvider = ({ children }) => {
           };
 
           // Fetch all mongodb data for user
-          const userResponse = await axios.get('/api/user/dashboard', userConfig);
+          const userResponse = await axios.get(`${baseURL}/api/user/dashboard`, userConfig);
           const userData = userResponse.data;
 
           updateallUserMongoData(userData);         
@@ -50,7 +53,8 @@ const AppProvider = ({ children }) => {
       allUserMongoData,
       updateallUserMongoData,
       nonuserData,
-      fetchNonuserData
+      fetchNonuserData,
+      baseURL
 
     }}>{children}</AppContext.Provider>;
 };

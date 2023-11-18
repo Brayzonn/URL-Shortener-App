@@ -26,7 +26,7 @@ app.use((req, res , next) => {
 
 //cors config
 app.use(cors({
-  origin: ['https://url-shortener-app-git-main-brayzonns-projects.vercel.app/'],
+  origin: ['https://url-shortener-app-git-main-brayzonns-projects.vercel.app'],
   credentials: true,
   optionSuccessStatus:200
 }))

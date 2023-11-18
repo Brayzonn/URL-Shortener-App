@@ -24,7 +24,7 @@ const UserLanding = () => {
 
     const navigate = useNavigate();
 
-    const {allUserMongoData, fetchUserData} =  useGlobalContext();
+    const {allUserMongoData, fetchUserData, baseURL} =  useGlobalContext();
 
     const [userLinkData, UpdateuserLinkData] = useState([]);
 
@@ -102,7 +102,7 @@ const UserLanding = () => {
     
         try {
             //send form data to backend
-            const submitResponse =  await axios.post('/api/user/submiturl', {...linkValue}, userConfig)
+            const submitResponse =  await axios.post(`${baseURL}/api/user/submiturl`, {...linkValue}, userConfig)
             const submitData = submitResponse.data;
             
             // checks if data contains any errors

@@ -1,7 +1,8 @@
 import React from 'react'
 import {Link, useNavigate} from "react-router-dom"
 import { useState, useEffect } from 'react';
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
+import { useGlobalContext } from '../context';
 import { customToastError, customToastSuccess } from '../assets/toastStyles';  
 
 
@@ -12,6 +13,8 @@ import loadingImage from '../images/loading.svg'
 const Signup = () => {
 
     const navigate = useNavigate();
+
+    const { baseURL} =  useGlobalContext();
 
     //screen width----------------------------------------
     const [screenWidth, setScreenWidth] = useState(window.innerWidth);
@@ -56,7 +59,7 @@ const Signup = () => {
     
         try {
             //send form data to backend
-            const signUpResp =  await axios.post('/api/signup', {...signupValues})
+            const signUpResp =  await axios.post(`${baseURL}/api/signup` , {...signupValues})
             const signUpdata = signUpResp.data;
     
             //checks if data contains any errors
