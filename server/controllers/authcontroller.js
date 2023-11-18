@@ -228,7 +228,7 @@ module.exports.freeSubmitUrl = async (req, res, next) => {
             //cfreate and save new data
             const newurl = new freelinkModel({
                 UrlFromUser,
-                userIP: ip,
+                userIP: clientIP,
                 shortUrl,
                 urlCode,
                 clicks: 0,
