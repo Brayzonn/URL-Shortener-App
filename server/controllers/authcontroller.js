@@ -16,6 +16,9 @@ const freelinkModel = require('../models/nonRegLinkData')
 
 
 
+module.exports.landing = async (req, res, next) => {
+    res.status(200).json('Welcome to my home, human!')
+}
 
 
 //POST sign up---------

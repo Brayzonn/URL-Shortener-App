@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const {ensureAuthenticated, ensureAdmin} = require('../config/auth');
 
-const { userdash, getuRL, submitUrl, getuRLnonUser, getSubmitUrl, freeSubmitUrl, signup, signin } = require("../controllers/authcontroller");
+const { userdash, landing, getuRL, submitUrl, getuRLnonUser, getSubmitUrl, freeSubmitUrl, signup, signin } = require("../controllers/authcontroller");
 
 router.post("/api/user/submiturl", ensureAuthenticated, submitUrl)
 
@@ -16,6 +16,8 @@ router.get('/:urlcode', getuRL)
 router.post('/api/submiturl', freeSubmitUrl)
 
 router.get('/api/getfreeurl', getSubmitUrl) 
+
+router.get('/', landing) 
 
 router.get('/:nonuserurlcode', getuRLnonUser)
 

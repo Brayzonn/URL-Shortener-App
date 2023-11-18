@@ -26,7 +26,7 @@ app.use((req, res , next) => {
 
 //cors config
 app.use(cors({
-  origin: ['http://localhost:3000'],
+  origin: ['https://url-shortener-7bptp7vug-brayzonns-projects.vercel.app/'],
   credentials: true,
   optionSuccessStatus:200
 }))

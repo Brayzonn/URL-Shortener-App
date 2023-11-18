@@ -1,16 +1,19 @@
+# Linkly
+
 Linkly is a modern and efficient URL shortener web application that provides a secure and seamless experience for shortening long URLs. This app comes with authentication features, enabling users to securely sign up and log in for personalized access.
 
-The UI was gotten from Figma 
+The UI was gotten from Figma. [Link](https://www.figma.com/file/RKH2jbXwFvqAMtssuXF4QX/URL-Shorter-Website-Design-(Community)?type=design&node-id=1-592&mode=design&t=eQPDQ10KmXZiTf8F-0)
+
 
 ## Deployment
 
-This was deployed to Vercel .....
+This was deployed to Vercel and Render
 
 ## Stack
 
-This was built using - React, Tailwind CSS, Express JS and MongoDB.
+This was built using - React, Tailwind CSS, ExpressJS and MongoDB.
 
-## features
+## Features
 
 These are the features of the Linkly app.
 
