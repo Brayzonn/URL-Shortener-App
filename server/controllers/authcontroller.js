@@ -184,7 +184,7 @@ module.exports.getSubmitUrl = async (req, res, next) => {
         return res.status(200).json({ userLinks: userLinksWithFavicons, linksRemaining: Number(3) -  Number(freeLinkModel.length)});
 
     } catch (error) {
-        
+        console.log(error)
     }
 
 }
