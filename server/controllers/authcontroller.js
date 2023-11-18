@@ -122,8 +122,11 @@ const generateUserToken = (payload) => {
 module.exports.getSubmitUrl = async (req, res, next) => {
 
     try {
-        const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress; 
-        const freeLinkModel = await freelinkModel.find({userIP: ip})
+        const ipList = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+        const ips = ipList.split(',');
+        const clientIP = ips[0].trim(); // Extract the left-most IP address
+
+        const freeLinkModel = await freelinkModel.find({userIP: clientIP})
 
         async function checkLinkStatus(url) {
             try {
@@ -193,7 +196,10 @@ module.exports.getSubmitUrl = async (req, res, next) => {
 //POST link shorterner for non users---------
 module.exports.freeSubmitUrl = async (req, res, next) => {
     try {
-        const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress; 
+        const ipList = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+        const ips = ipList.split(',');
+        const clientIP = ips[0].trim(); // Extract the left-most IP address
+
         const { UrlFromUser } = req.body;
 
         const baseUrl = config.get('baseUrl');
@@ -211,7 +217,7 @@ module.exports.freeSubmitUrl = async (req, res, next) => {
             return res.status(200).json({errMsg: 'Invalid URL'});
         }
 
-        const freeLinkModel = await freelinkModel.find({userIP: ip})
+        const freeLinkModel = await freelinkModel.find({userIP: clientIP})
 
         //checks if user has used up all free links
         if(freeLinkModel.length <= 2){
