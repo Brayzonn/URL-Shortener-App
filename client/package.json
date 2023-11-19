@@ -39,7 +39,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
-  "proxy": "https://link-shortener-server.onrender.com",
+  "proxy": "https://linklyy.onrender.com",
   "eslintConfig": {
     "extends": [
       "react-app",

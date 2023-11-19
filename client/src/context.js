@@ -8,7 +8,7 @@ const AppContext = React.createContext();
 const AppProvider = ({ children }) => {
 
     //base url
-    const [baseURL, updateBaseUrl] = useState('https://link-shortener-server.onrender.com')
+    const [baseURL, updateBaseUrl] = useState('https://linklyy.onrender.com')
 
     //non users data
     const [nonuserData, updatenonuserData]  = useState([])
