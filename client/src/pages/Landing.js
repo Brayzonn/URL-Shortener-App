@@ -271,7 +271,7 @@ const Landing = () => {
                   <div className='absolute top-0 left-0 w-full h-full bg-[#181E29] opacity-[42%]'></div>
                   
                   {/* short link */}
-                  <div className={`w-full h-full flex justify-between items-center ${(displayMenu[index] && screenWidth < 891) && 'p-2 border border-[#0c1e3f] rounded-md' } md:justify-start`}>
+                  <div className={`relative z-50 w-full h-full flex justify-between items-center ${(displayMenu[index] && screenWidth < 891) && 'p-2 border border-[#0c1e3f] rounded-md' } md:justify-start`}>
                       <div className='flex items-center space-x-2 w-[70%] md:w-full'>
                           <p className='text-ellipsis text-[13px] text-greyText sm:text-[14px]'>{eachLink.shortUrl}</p>
 
@@ -299,7 +299,7 @@ const Landing = () => {
 
 
                   {/* original link */}
-                  {(displayMenu[index] || screenWidth > 891) && <div className='max-w-full h-full flex justify-start items-center space-x-2 '>
+                  {(displayMenu[index] || screenWidth > 891) && <div className='relative z-50 max-w-full h-full flex justify-start items-center space-x-2 '>
                       <div className='shrink-0 w-[29px] h-[29px] flex justify-center items-center bg-[#1f3256] border border-[#1f3256] rounded-[30px]'>
                          <img src={`data:image/x-icon;base64,${eachLink.favicon.image}`} 
                          className='w-[20px] h-[20px]'
@@ -311,14 +311,14 @@ const Landing = () => {
                   </div>}
 
                   {/* clicks */}
-                  {(displayMenu[index] || screenWidth > 891) && <div className='flex items-center'>
+                  {(displayMenu[index] || screenWidth > 891) && <div className='relative z-50 flex items-center'>
                     {screenWidth < 891 ?
                         <p className=' text-[13px] text-greyText sm:text-[14px]'>{eachLink.clicks} clicks</p>
                     :   <p className=' text-[13px] text-greyText sm:text-[14px]'>{eachLink.clicks}</p>}
                   </div>}
 
                   {/* status */}
-                  {(displayMenu[index] || screenWidth > 891) && <div className='w-full h-full flex items-center space-x-2 '>
+                  {(displayMenu[index] || screenWidth > 891) && <div className='relative z-50 w-full h-full flex items-center space-x-2 '>
                       <p className=' text-[13px] text-[#1EB036] sm:text-[14px]'>{eachLink.status}</p>
 
                       <div className='relative shrink-0 w-[29px] h-[29px] flex justify-center items-center bg-[#0e4818] border border-[#0e4818] rounded-[30px]'>
@@ -327,7 +327,7 @@ const Landing = () => {
                   </div>}
 
                   {/* date */}
-                  {(displayMenu[index] || screenWidth > 891) && <div className='flex items-center '>
+                  {(displayMenu[index] || screenWidth > 891) && <div className='relative z-50 flex items-center '>
                       <p className=' text-[13px] text-greyText sm:text-[14px]'>{formatDate(eachLink.date)}</p>
                   </div>}
               </div> )}

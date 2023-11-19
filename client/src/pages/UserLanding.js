@@ -364,7 +364,7 @@ if(isLoading){
                             <div className='absolute top-0 left-0 w-full h-full bg-[#0D1117] opacity-[0.70]'></div>
                             
                             {/* short link */}
-                            <div className={`relative w-full h-full flex justify-between items-center ${(displayMenu[index] && screenWidth < 891) && 'p-2 border border-[#0c1e3f] rounded-md' } md:justify-start`}>
+                            <div className={`relative z-50 w-full h-full flex justify-between items-center ${(displayMenu[index] && screenWidth < 891) && 'p-2 border border-[#0c1e3f] rounded-md' } md:justify-start`}>
                                 <div className='flex items-center space-x-2 w-[70%] md:w-full'>
             
                                     <p className='text-ellipsis text-[14px] text-greyText sm:text-[15px]'>{eachLink.shortUrl}</p>
@@ -381,7 +381,7 @@ if(isLoading){
                                 </div>
     
                                 {screenWidth < 891 && 
-                                <div className='relative w-[50%] flex items-center justify-end'>
+                                <div className='relative z-50 w-[50%] flex items-center justify-end'>
                                     <button onClick={() => toggleColMenu(index)} className='z-50 shrink-0 w-[29px] h-[29px] flex justify-center items-center bg-[#1f3256] border border-[#1f3256] rounded-[30px]'>
                                         {!displayMenu[index] ? < BsChevronDown className='text-[13px] text-white'/> 
                                             :
@@ -392,7 +392,7 @@ if(isLoading){
                             </div>
     
                             {/* original link */}
-                            {(displayMenu[index] || screenWidth > 891) && <div className='relative max-w-full h-full flex justify-start items-center space-x-2 '>
+                            {(displayMenu[index] || screenWidth > 891) && <div className='relative  z-50 max-w-full h-full flex justify-start items-center space-x-2 '>
                                 <div className='shrink-0 w-[29px] h-[29px] flex justify-center items-center '>
                                     <img src={`data:image/x-icon;base64,${eachLink.favicon.image}`}
                                     alt='logo' 
@@ -404,7 +404,7 @@ if(isLoading){
                             </div>}
     
                             {/* clicks */}
-                            {(displayMenu[index] || screenWidth > 891) && <div className='relative flex items-center'>
+                            {(displayMenu[index] || screenWidth > 891) && <div className='relative  z-50 flex items-center'>
                                 {screenWidth < 891 ?
                                     <p className=' text-[14px] text-greyText sm:text-[15px]'>{eachLink.clicks} clicks</p>
                                 :   
@@ -413,7 +413,7 @@ if(isLoading){
                             </div>}
     
                             {/* status */}
-                            {(displayMenu[index] || screenWidth > 891) && <div className='relative w-full h-full flex items-center space-x-2 '>
+                            {(displayMenu[index] || screenWidth > 891) && <div className='relative  z-50 w-full h-full flex items-center space-x-2 '>
                                 <p className={`text-[14px] ${eachLink.status === 'Active' ? 'text-[#1EB036]' : 'text-[#B0901E]'} sm:text-[15px]` }>{eachLink.status}</p> 
     
                                 <div className={`relative shrink-0 w-[29px] h-[29px] flex justify-center items-center ${eachLink.status === 'Active' ? 'bg-[#0e4818] border border-[#0e4818]' : 'bg-[#B0901E] border-[#B0901E]'}  rounded-[30px]`}>
@@ -422,7 +422,7 @@ if(isLoading){
                             </div>}
     
                             {/* date */}
-                            {(displayMenu[index] || screenWidth > 891) && <div className='relative flex items-center '>
+                            {(displayMenu[index] || screenWidth > 891) && <div className='relative  z-50 flex items-center '>
                                 <p className=' text-[14px] text-greyText sm:text-[15px]'>{formatDate(eachLink.date)}</p>
                             </div>}
                         </div>)}
