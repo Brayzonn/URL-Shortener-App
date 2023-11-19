@@ -223,7 +223,7 @@ module.exports.freeSubmitUrl = async (req, res, next) => {
         if(freeLinkModel.length <= 2){
             // generate short url 
             const urlCode = shortid.generate();
-            const shortUrl = baseUrl + '/' + urlCode;
+            const shortUrl = baseUrl + '/a/' + urlCode;
 
             //cfreate and save new data
             const newurl = new freelinkModel({
@@ -388,7 +388,7 @@ module.exports.submitUrl = async (req, res, next) => {
         } else {
             // generate short url 
             const urlCode = shortid.generate();
-            const shortUrl = baseUrl + '/' + urlCode;
+            const shortUrl = baseUrl + '/b/' + urlCode;
 
             //get user id and email
             const userInfo = await User.findOne({_id: req.id})

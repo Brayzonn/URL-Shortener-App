@@ -11,7 +11,7 @@ router.post('/api/signin', signin)
 
 router.get('/api/user/dashboard', ensureAuthenticated, userdash)
 
-router.get('/:urlcode', getuRL)
+router.get('/a/:urlcode', getuRL)
 
 router.post('/api/submiturl', freeSubmitUrl)
 
@@ -19,7 +19,7 @@ router.get('/api/getfreeurl', getSubmitUrl)
 
 router.get('/', landing) 
 
-router.get('/:nonuserurlcode', getuRLnonUser)
+router.get('/b/:nonuserurlcode', getuRLnonUser)
 
 
 module.exports = router;
