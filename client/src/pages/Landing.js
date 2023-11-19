@@ -235,7 +235,7 @@ const Landing = () => {
               </div>  
 
               <div className='relative flex flex-col justify-center items-center space-y-2 sm:flex-row sm:space-y-0 sm:space-x-1'>
-                  <p className='text-greyText text-[14px] text-center'>You can create <span className='text-[#EB568E]'>0{updateLinks}</span> more links. {screenWidth > 578 ? `Register Now to enjoy unlimited usage` : '' } </p>
+                  <p className='text-greyText text-[14px] text-center'>You can create <span className='text-[#EB568E]'>{updateLinks}</span> more links. {screenWidth > 578 ? `Register Now to enjoy unlimited usage` : '' } </p>
                   <p className='text-greyText text-[14px] text-center'>
                       {screenWidth < 578 ? (
                         <>

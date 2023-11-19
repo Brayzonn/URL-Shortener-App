@@ -257,10 +257,8 @@ function extractBaseUrl(fullUrl) {
 //GET url handling and redirection for non-users
 module.exports.getuRLnonUser = async (req, res, next) => {
 
-    const linkCode = req.params.urlcode;
-
-    console.log(linkCode)
-
+    const linkCode = req.params.nonuserurlcode;
+    
     try {
         const linkData = await freelinkModel.findOne({ urlCode: linkCode });
         
