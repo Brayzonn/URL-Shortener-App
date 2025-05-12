@@ -1,38 +1,33 @@
 # Linkly
 
-[Linkly](https://linklyy.vercel.app) is a modern and efficient URL shortener web application that provides a secure and seamless experience for shortening long URLs. This app comes with authentication features, enabling users to securely sign up and log in for personalized access.
+[Linkly](https://linklyy.vercel.app) is a modern and efficient URL shortener web application that provides a secure and seamless experience for shortening long URLs. This app comes with authentication and analytic features, enabling users to securely sign up and log in for personalized access.
 
-The UI was gotten from Figma. [Link](https://www.figma.com/file/RKH2jbXwFvqAMtssuXF4QX/URL-Shorter-Website-Design-(Community)?type=design&node-id=1-592&mode=design&t=eQPDQ10KmXZiTf8F-0)
+The UI inspo was gotten from Figma. [Link](https://www.figma.com/file/RKH2jbXwFvqAMtssuXF4QX/URL-Shorter-Website-Design-(Community)?type=design&node-id=1-592&mode=design&t=eQPDQ10KmXZiTf8F-0)
 
 ## Deployment
 
-This was deployed to Vercel and Render
+This was deployed to Vercel(Client) and VPS(Server)
 
 ## Stack
 
-This was built using - ReactJS, Tailwind CSS, ExpressJS and MongoDB.
+### Frontend
+- React.js
+- Tailwind CSS
+- Axios
+- SWR
+
+### Backend
+- Node.js
+- Express.js
+- MongoDB
+- JWT Authentication
+- Mongoose
 
 ## Features
 
-These are the features of the Linkly app.
-
-1. Authentication
-    * Sign Up/Sign In with Email, Username and Password
-
-2.  Others
-    * Link shortening
-    * Link Auto-Paste
-    * Link Copying
-    * Capability to view total number of link clicks 
-    * Restricting non-registered users to maximum of 3 links
-
-
-## What I Learnt 
-
-Working on this project helped me understand API's better as I was more focused on the API than the UI
-
-
-
-
-
+- Quick URL shortening with a clean, user-friendly interface
+- User authentication for personalized access
+- Link management and organization
+- Click analytics for monitoring link performance
+- Responsive design for seamless experience across devices
 

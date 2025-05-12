@@ -11,7 +11,7 @@ const authRoutes = require('./routes/authroutes');
 
 // Initialize express
 const app = express();
-const PORT = process.env.PORT || 3300; 
+const PORT = process.env.PORT || 4300; 
 
 // Security middleware
 app.use(helmet());
