@@ -2,7 +2,6 @@ import React from 'react'
 import axios from 'axios'
 import {Link, useNavigate} from "react-router-dom"
 import { useState, useEffect } from 'react';
-import { useGlobalContext } from '../context';
 import { ToastContainer } from 'react-toastify';
 import { customToastError, customToastSuccess } from '../assets/toastStyles'; 
 import loadingImage from '../images/loading.svg'
@@ -12,9 +11,9 @@ import { BsEye } from "react-icons/bs";
 
 const Signin = () => {
 
-    const navigate = useNavigate();
+    const baseURL = process.env.REACT_APP_API_URL || "http://localhost:3300";
 
-    const { fetchUserData, baseURL} =  useGlobalContext();
+    const navigate = useNavigate();
 
     //screen width----------------------------------------
     const [screenWidth, setScreenWidth] = useState(window.innerWidth);
@@ -74,8 +73,7 @@ const Signin = () => {
                     updateisLoadingBtn(false)
                     setIsButtonDisabled(false)
                     sessionStorage.setItem('userInfo', JSON.stringify(signIndata.token))
-                    fetchUserData()
-                    navigate('/user/dashboard'); // Navigate to the admin dashboard  
+                    navigate('/user/dashboard'); 
                 }, 3000)       
             }
     

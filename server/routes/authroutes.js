@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const {ensureAuthenticated, ensureAdmin} = require('../config/auth');
+const {ensureAuthenticated} = require('../config/auth');
 
 const { userdash, landing, getuRL, submitUrl, getuRLnonUser, getSubmitUrl, freeSubmitUrl, signup, signin } = require("../controllers/authcontroller");
 

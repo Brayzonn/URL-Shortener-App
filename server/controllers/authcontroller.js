@@ -120,77 +120,260 @@ const generateUserToken = (payload) => {
 
 //GET non-users link data 
 module.exports.getSubmitUrl = async (req, res, next) => {
-
     try {
-        const ipList = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+        // Get client IP with better fallback handling
+        const ipList = req.headers['x-forwarded-for'] || 
+                      req.headers['x-real-ip'] || 
+                      req.connection.remoteAddress || 
+                      '127.0.0.1';
         const ips = ipList.split(',');
-        const clientIP = ips[0].trim(); // Extract the left-most IP address
-
-        const freeLinkModel = await freelinkModel.find({userIP: clientIP})
-
+        const clientIP = ips[0].trim(); 
+        
+        // Find links created by this IP
+        const freeLinkModel = await freelinkModel.find({ userIP: clientIP });
+        
+        // constants
+        const MAX_BATCH_SIZE = 3; 
+        const MAX_FREE_LINKS = 3;
+        const FAVICON_CACHE_DURATION = 7 * 24 * 60 * 60 * 1000; 
+        
+        /**
+         * Check link status 
+         * @param {string} url - URL to check
+         * @returns {string} - Status of the link
+         */
         async function checkLinkStatus(url) {
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                url = 'https://' + url;
+            }
+            
             try {
-              const response = await axios.head(url, { timeout: 5000 });
-              return response.status === 200 ? 'Active' : 'Inactive';
+                const response = await axios.head(url, { 
+                    timeout: 5000,
+                    maxRedirects: 5,
+                    validateStatus: status => status < 400,
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 LinkChecker/1.0'
+                    }
+                });
+                
+                return 'Active';
+            } catch (headError) {
+                // If HEAD request fails, try GET as fallback
+                if (headError.response?.status === 405 || 
+                    headError.code === 'ECONNABORTED' ||  
+                    headError.code === 'ERR_BAD_REQUEST') {
+                    
+                    try {
+                        const response = await axios.get(url, { 
+                            timeout: 5000,
+                            maxRedirects: 5,
+                            validateStatus: status => status < 400,
+                            headers: {
+                                'User-Agent': 'Mozilla/5.0 LinkChecker/1.0'
+                            }
+                        });
+                        
+                        return 'Active';
+                    } catch (getError) {
+                        // Handle rate limiting
+                        if (getError.response?.status === 429) {
+                            await new Promise(resolve => setTimeout(resolve, 5000));
+                            try {
+                                await axios.get(url, { 
+                                    timeout: 10000,
+                                    maxRedirects: 5,
+                                    headers: {
+                                        'User-Agent': 'Mozilla/5.0 LinkChecker/1.0'
+                                    }
+                                });
+                                return 'Active';
+                            } catch (retryError) {
+                                return 'Rate Limited';
+                            }
+                        }
+                        
+                        if (getError.response) {
+                            const status = getError.response.status;
+                            if (status === 404) return 'Not Found';
+                            if (status >= 500) return 'Server Error';
+                            if (status === 403 || status === 401) return 'Restricted';
+                        }
+                        
+                        if (getError.code === 'ENOTFOUND') return 'Domain Not Found';
+                        if (getError.code === 'ECONNREFUSED') return 'Connection Refused';
+                        if (getError.code === 'ETIMEDOUT') return 'Timeout';
+                        
+                        return 'Inactive';
+                    }
+                }
+                
+                // Handle rate limiting for HEAD requests
+                if (headError.response?.status === 429) {
+                    await new Promise(resolve => setTimeout(resolve, 5000));
+                    return checkLinkStatus(url); 
+                }
+                
+                // Classify other HEAD errors
+                if (headError.response) {
+                    const status = headError.response.status;
+                    if (status === 404) return 'Not Found';
+                    if (status >= 500) return 'Server Error';
+                    if (status === 403 || status === 401) return 'Restricted';
+                }
+                
+                if (headError.code === 'ENOTFOUND') return 'Domain Not Found';
+                if (headError.code === 'ECONNREFUSED') return 'Connection Refused';
+                if (headError.code === 'ETIMEDOUT') return 'Timeout';
+                
+                return 'Inactive';
+            }
+        }
+        
+        /**
+         * Extract base URL for favicon fetching
+         * @param {string} url - URL to extract base from
+         * @returns {string} - Base URL
+         */
+        function extractBaseUrl(url) {
+            try {
+                if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                    url = 'https://' + url;
+                }
+                
+                const urlObj = new URL(url);
+                return `${urlObj.protocol}//${urlObj.hostname}`;
             } catch (error) {
-            if (error.response && error.response.status === 429) {
-                await new Promise((resolve) => setTimeout(resolve, 5000)); 
-                    return checkLinkStatus(url);
-                } else {
-                console.error('Error checking link status:', error.message);
-                    return 'Error checking link status';
-                }
+                console.error('Error extracting base URL:', error.message);
+                return url; 
             }
         }
-    
-        // Function to update link status
-        const updateLinkStatus = await Promise.all(
-            freeLinkModel.map(async (link) => {
-                try {
-                    const status = await checkLinkStatus(link.UrlFromUser);
-    
-                    // Update the link status in MongoDB
-                    await freelinkModel.updateOne({ _id: link._id }, { $set: { status } });
-                } catch (error) {
-                     console.error('Error updating link status in MongoDB:', error.message);
+        
+        /**
+         * Fetch favicon with improved error handling
+         * @param {string} url - URL to fetch favicon for
+         * @returns {Object} - Favicon data
+         */
+        async function fetchFavicon(url, link) {
+            try {
+                // Check if we have a cached favicon and it's not too old
+                if (link.favicon && link.faviconLastChecked) {
+                    const lastChecked = new Date(link.faviconLastChecked);
+                    if ((new Date() - lastChecked) < FAVICON_CACHE_DURATION) {
+                        return link.favicon; // Use cached favicon
+                    }
                 }
-            })
-        );
-
-        //function to fetch favicon for URL
-        async function fetchFavicon(url) {
-            const { default: fetch } = await import('node-fetch'); 
-            const filteredFaviconLink = extractBaseUrl(url);
-            const faviconUrl = `${filteredFaviconLink}/favicon.ico`;
-            const faviconResponse = await fetch(faviconUrl);
-    
-            if (faviconResponse.ok) {
-            const blob = await faviconResponse.blob();
-            const buffer = await blob.arrayBuffer();
-            const imageBuffer = Buffer.from(buffer);
-            const imageBase64 = imageBuffer.toString('base64');
-    
-            return { url, image: imageBase64 };
-            } else {
-            return { url, image: null }; // Favicon not found
+                
+                const { default: fetch } = await import('node-fetch');
+                const filteredFaviconLink = extractBaseUrl(url);
+                
+                // Try multiple favicon locations
+                const faviconUrls = [
+                    `${filteredFaviconLink}/favicon.ico`,
+                    `${filteredFaviconLink}/favicon.png`,
+                    `${filteredFaviconLink}/apple-touch-icon.png`,
+                ];
+                
+                // Try each potential favicon URL
+                for (const faviconUrl of faviconUrls) {
+                    try {
+                        const faviconResponse = await fetch(faviconUrl, {
+                            timeout: 3000,
+                            headers: {
+                                'User-Agent': 'Mozilla/5.0 FaviconFetcher/1.0'
+                            }
+                        });
+                        
+                        if (faviconResponse.ok) {
+                            const blob = await faviconResponse.blob();
+                            const buffer = await blob.arrayBuffer();
+                            const imageBuffer = Buffer.from(buffer);
+                            
+                            // Only store if it's a reasonable size (< 50KB)
+                            if (imageBuffer.length < 50 * 1024) {
+                                const imageBase64 = imageBuffer.toString('base64');
+                                
+                                // Update favicon in database
+                                await freelinkModel.updateOne(
+                                    { _id: link._id },
+                                    { 
+                                        $set: { 
+                                            favicon: { url, image: imageBase64 },
+                                            faviconLastChecked: new Date()
+                                        } 
+                                    }
+                                ).catch(err => console.error('Error updating favicon:', err.message));
+                                
+                                return { url, image: imageBase64 };
+                            }
+                        }
+                    } catch (innerError) {
+                        // Continue to next favicon URL on error
+                        continue;
+                    }
+                }
+                
+                // If we get here, no favicon was found
+                return { url, image: null };
+            } catch (error) {
+                console.error('Error fetching favicon:', error.message);
+                return { url, image: null };
             }
         }
-    
-        // Fetch favicon for each link in userLinks
-        const userLinksWithFavicons = await Promise.all(
-            freeLinkModel.map(async (link) => {
-            const favicon = await fetchFavicon(link.UrlFromUser);
-            return { ...link.toObject(), favicon};
-            })
-        );
-    
-        return res.status(200).json({ userLinks: userLinksWithFavicons, linksRemaining: Number(3) -  Number(freeLinkModel.length)});
-
+        
+        // Process links in batches to avoid overwhelming resources
+        const processedLinks = [];
+        
+        for (let i = 0; i < freeLinkModel.length; i += MAX_BATCH_SIZE) {
+            const batch = freeLinkModel.slice(i, i + MAX_BATCH_SIZE);
+            
+            const batchPromises = batch.map(async (link) => {
+                // Check if link status needs updating (older than 24 hours)
+                let status = link.status;
+                if (!link.lastStatusCheck || (new Date() - new Date(link.lastStatusCheck) > 24 * 60 * 60 * 1000)) {
+                    status = await checkLinkStatus(link.UrlFromUser);
+                    
+                    // Update status in database (don't await to speed up response)
+                    freelinkModel.updateOne(
+                        { _id: link._id },
+                        { $set: { status, lastStatusCheck: new Date() } }
+                    ).catch(err => console.error('Error updating link status in MongoDB:', err.message));
+                }
+                
+                // Fetch favicon
+                const favicon = await fetchFavicon(link.UrlFromUser, link);
+                
+                // Return link with status and favicon
+                return { 
+                    ...link.toObject(),
+                    status,
+                    favicon
+                };
+            });
+            
+            // Wait for current batch to complete
+            const batchResults = await Promise.all(batchPromises);
+            processedLinks.push(...batchResults);
+        }
+        
+        // Calculate remaining links
+        const linksRemaining = Math.max(0, MAX_FREE_LINKS - freeLinkModel.length);
+        
+        // Return response
+        return res.status(200).json({ 
+            userLinks: processedLinks, 
+            linksRemaining: linksRemaining
+        });
+        
     } catch (error) {
-        console.log(error)
+        console.error('Error in getSubmitUrl:', error);
+        return res.status(500).json({ 
+            errMsg: 'Server error processing link data',
+            error: process.env.NODE_ENV === 'production' ? null : error.message
+        });
     }
+};
 
-}
 //---------------
 
 //POST link shorterner for non users---------
@@ -198,11 +381,11 @@ module.exports.freeSubmitUrl = async (req, res, next) => {
     try {
         const ipList = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
         const ips = ipList.split(',');
-        const clientIP = ips[0].trim(); // Extract the left-most IP address
+        const clientIP = ips[0].trim(); 
 
         const { UrlFromUser } = req.body;
 
-        const baseUrl = config.get('baseUrl');
+        const baseUrl = process.env.SERVER_BASEURL
 
         //check for empty url
         if(!UrlFromUser){
@@ -353,8 +536,8 @@ module.exports.submitUrl = async (req, res, next) => {
 
     try {
         const { UrlFromUser } = req.body;
-
-        const baseUrl = config.get('baseUrl');
+        
+        const baseUrl = process.env.SERVER_BASEURL
 
         //check for empty url
         if(!UrlFromUser){

@@ -1,46 +1,32 @@
+import axios from 'axios';
+import useSWR from 'swr';
 import React, { useState, useEffect } from 'react';
 import {Link} from "react-router-dom";
 import { CopyToClipboard } from 'react-copy-to-clipboard';
-import { useGlobalContext } from '../context';
-import axios from 'axios'
 import { FiLogIn } from "react-icons/fi"; 
 import { FaLink, FaCopy} from "react-icons/fa"; 
 import { FaArrowRight } from "react-icons/fa"; 
 import { BsChevronDown } from "react-icons/bs"; 
 import { BsChevronUp } from "react-icons/bs";
 import { AiOutlineQuestionCircle } from "react-icons/ai";
-import loadingImage from '../images/loading.svg'
+import loadingImage from '../images/loading.svg';
 import { ToastContainer } from 'react-toastify';
 import { customToastError, customToastSuccess } from '../assets/toastStyles';   
 import { FcCheckmark } from "react-icons/fc";
 
-
 const Landing = () => {
+  const baseURL = process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:3300";
 
-  const {fetchNonuserData, nonuserData, baseURL} =  useGlobalContext();
-  const [nonUserData, updateNonUserData] = useState([])
-  const [updateLinks ,updateLinksRemaining] = useState(3);
-  const [ispageLoading, updateIsPageLoading] = useState(true)
-
-  //call fetch data function from context
-  useEffect(()=>{
-      fetchNonuserData()
-  }, []);
-
-  //update non user data whenever fetchNonuserData is called
-  useEffect(()=>{
-    if (nonuserData?.userLinks) {
-      updateNonUserData(nonuserData.userLinks);
-      updateLinksRemaining(nonuserData.linksRemaining)   
-      updateIsPageLoading(false)
-    } 
-  }, [fetchNonuserData]);
-
-  //date format -----
+  //SWR LOGIC
+  const fetcher = (url) => axios.get(url).then(res => res.data)
+  const { data, error, mutate } = useSWR(`${baseURL}/api/getfreeurl`, fetcher)
+  const isLoading = !data && !error;
+  
+  //date formatter function -----
   const formatDate = (dateString) => {
-    const options = { weekday: 'short', month: 'short', day: '2-digit', year: 'numeric' };
-    const date = new Date(dateString);
-    return date.toLocaleDateString(undefined, options);
+      const options = { weekday: 'short', month: 'short', day: '2-digit', year: 'numeric' };
+      const date = new Date(dateString);
+      return date.toLocaleDateString(undefined, options);
   };
 
   //screen width-----------------------------------------------------
@@ -62,7 +48,7 @@ const Landing = () => {
   }, []);
 
   // link submission---
-  const [isLoadingBtn, updateisLoadingBtn] = useState(null);
+  const [isLoadingBtn, updateisLoadingBtn] = useState(false);
   const [isButtonDisabled, setIsButtonDisabled] = useState(false);
 
   const [linkValue, updateLinkValue] = useState({
@@ -87,24 +73,22 @@ const Landing = () => {
           // checks if data contains any errors
           if(submitData.errMsg){
               customToastError(submitData.errMsg);
-              updateisLoadingBtn(false)
-              setIsButtonDisabled(false)   
-              fetchNonuserData()
-              updateLinkValue({ UrlFromUser: '' })           
+              updateLinkValue({ UrlFromUser: '' })  
+              mutate()         
           }else{
+              mutate()
               customToastSuccess(submitData.successMsg)
-              updateisLoadingBtn(false)
-              setIsButtonDisabled(false)
-              fetchNonuserData()
               updateLinkValue({ UrlFromUser: '' })
           }  
       }catch (error) {
           customToastError('Something went wrong. Please try again later.');
           console.log(error)
-      }      
+      } finally {
+          // Reset button state regardless of success or error
+          updateisLoadingBtn(false)
+          setIsButtonDisabled(false)
+      }     
   } 
-
-
 
   // toggle menu for smaller screens---
   const [displayMenu, updateDisplayMenu] = useState({});
@@ -115,12 +99,10 @@ const Landing = () => {
       updateDisplayMenu(updatedDisplayMenu);
   };
 
-
   // autopaste checkbox---
   const [isChecked, setIsChecked] = useState(false);
 
   const handleCheckboxChange = async () => {
-
       setIsChecked((prevIsChecked) => !prevIsChecked);        
 
       if (!isChecked) {
@@ -135,7 +117,6 @@ const Landing = () => {
             console.error('Failed to read clipboard data:', error);
           }
       }
-
   }
 
   //short link copy to clipboard funtion----
@@ -147,11 +128,9 @@ const Landing = () => {
       updateLinkCopied(updatedCopiedIcon);
 
       setTimeout(()=>{
-          updateLinkCopied(!updatedCopiedIcon);
+          updateLinkCopied({});
       }, 2000)
   }
-
-
 
   return (
     <div className='absolute min-h-[100vh] w-full flex flex-col justify-start items-start overflow-hidden rec-cube-bg bg-mainbackground'>
@@ -235,7 +214,7 @@ const Landing = () => {
               </div>  
 
               <div className='relative flex flex-col justify-center items-center space-y-2 sm:flex-row sm:space-y-0 sm:space-x-1'>
-                  <p className='text-greyText text-[14px] text-center'>You can create <span className='text-[#EB568E]'>{updateLinks}</span> more links. {screenWidth > 578 ? `Register Now to enjoy unlimited usage` : '' } </p>
+                  <p className='text-greyText text-[14px] text-center'>You can create <span className='text-[#EB568E]'>{data?.linksRemaining}</span> more links. {screenWidth > 578 ? `Register Now to enjoy unlimited usage` : '' } </p>
                   <p className='text-greyText text-[14px] text-center'>
                       {screenWidth < 578 ? (
                         <>
@@ -254,7 +233,7 @@ const Landing = () => {
           </div> 
 
           {/* links table */}
-          {!ispageLoading ? <div className='table-grid-container relative w-full min-h-[300px] mx-auto  sm:w-[95%]'>
+          {!isLoading && data && data.userLinks ? <div className='table-grid-container relative w-full min-h-[300px] mx-auto  sm:w-[95%]'>
               {screenWidth > 891 ? <div className='bg-[#181E29] px-3  w-full border border-[#181E29] rounded-tl-lg rounded-tr-lg table-grid-head '>         
                   <p className=' text-[15px] font-[550] text-greyText flex-1'>Short Link</p>
                   <p className=' text-[15px] font-[550] text-greyText flex-1 '>Original Link</p>
@@ -267,7 +246,7 @@ const Landing = () => {
                   <p className=' text-[15px] font-[550] text-greyText flex-1 '>Link History</p>
               </div>}
 
-              {nonUserData.map((eachLink, index) => <div key={index} className={`relative p-3 flex flex-col transition-all duration-1000 ease-in-out ${displayMenu ? 'space-y-4' : 'space-y-0'} md:flex-none md:space-y-0 md:grid md:grid-cols-5 md:gap-[2rem] `}>
+              {data.userLinks.map((eachLink, index) => <div key={index} className={`relative p-3 flex flex-col transition-all duration-1000 ease-in-out ${displayMenu ? 'space-y-4' : 'space-y-0'} md:flex-none md:space-y-0 md:grid md:grid-cols-5 md:gap-[2rem] `}>
                   <div className='absolute top-0 left-0 w-full h-full bg-[#181E29] opacity-[42%]'></div>
                   
                   {/* short link */}
@@ -297,11 +276,10 @@ const Landing = () => {
                       }
                   </div>
 
-
                   {/* original link */}
                   {(displayMenu[index] || screenWidth > 891) && <div className='relative z-50 max-w-full h-full flex justify-start items-center space-x-2 '>
                       <div className='shrink-0 w-[29px] h-[29px] flex justify-center items-center bg-[#1f3256] border border-[#1f3256] rounded-[30px]'>
-                         <img src={`data:image/x-icon;base64,${eachLink.favicon.image}`} 
+                         <img src={eachLink.favicon && eachLink.favicon.image ? `data:image/x-icon;base64,${eachLink.favicon.image}` : '/default-favicon.ico'} 
                          className='w-[20px] h-[20px]'
                          alt='logo' 
                          />
@@ -331,11 +309,13 @@ const Landing = () => {
                       <p className=' text-[13px] text-greyText sm:text-[14px]'>{formatDate(eachLink.date)}</p>
                   </div>}
               </div> )}
-
           </div> 
           
-          : 
-          
+          : error ? 
+          <div className="relative overflow-hidden flex flex-col justify-center items-center bg-inherit w-full ">
+              <p className="text-red-500">Error loading data. Please try again.</p>
+          </div>
+          :
           <div className="relative overflow-hidden flex flex-col justify-center items-center bg-inherit w-full ">
               <img src={loadingImage} className='w-[100px] h-[100px]' alt='loading'  />
           </div>

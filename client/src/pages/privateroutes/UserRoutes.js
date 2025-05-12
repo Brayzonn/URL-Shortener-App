@@ -1,36 +1,46 @@
-import React from 'react';
-import { useEffect } from 'react'
-import { Outlet, useNavigate } from 'react-router-dom';
-import { useGlobalContext } from '../../context';
-
+import React, { useEffect, useState } from 'react';
+import { Outlet, useNavigate, Navigate } from 'react-router-dom';
 
 const UserRoutes = () => {
-
     const navigate = useNavigate();
-
-    const{ fetchUserData} = useGlobalContext();
-
-    const token = window.sessionStorage.getItem(`userInfo`);
-
-    useEffect(()=>{
-        fetchUserData(); 
-    }, []);
-
-    //clear session storage timeout
-    useEffect(() => {
-        // Set a timeout to clear session storage after 30 mins 
-        const timeout = setTimeout(() => {
-            window.sessionStorage.clear();
-            <navigate to = '/Signin' />     
-        }, 1800000);
+    const [isChecking, setIsChecking] = useState(true);
     
-        // Clean up the timeout when the component unmounts
+    const token = sessionStorage.getItem('userInfo');
+    
+    useEffect(() => {
+        if (!token) {
+            setIsChecking(false);
+            return;
+        }
+        
+        const checkTimeout = setTimeout(() => {
+            setIsChecking(false);
+        }, 100);
+        
+        const sessionTimeout = setTimeout(() => {
+            sessionStorage.clear();
+            navigate('/signin', { replace: true });
+        }, 1800000); 
+        
         return () => {
-            clearTimeout(timeout)  ;
+            clearTimeout(checkTimeout);
+            clearTimeout(sessionTimeout);
         };
-    }, [navigate]);
-  
-    return token ? <Outlet /> : <navigate to = '/Signin' />
+    }, [token, navigate]);
+    
+    if (isChecking) {
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-mainbackground">
+                <div className="text-white">Loading...</div>
+            </div>
+        );
+    }
+    
+    if (!token) {
+        return <Navigate to="/signin" replace />;
+    }
+    
+    return <Outlet />;
 };
 
 export default UserRoutes;

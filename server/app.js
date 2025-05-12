@@ -1,63 +1,98 @@
-const express = require('express')
+const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const session = require('express-session');
-const authRoutes = require("./routes/authroutes")
-const app = express()
+require('dotenv').config();
+const helmet = require('helmet'); 
+const compression = require('compression'); 
+const morgan = require('morgan'); 
+const { mongoURI } = require('./config/keys');
+const authRoutes = require('./routes/authroutes');
 
+// Initialize express
+const app = express();
+const PORT = process.env.PORT || 3300; 
 
+// Security middleware
+app.use(helmet());
 
+// Compress responses
+app.use(compression());
 
-//middleware
-app.use(express.json())
+// Request logging in development
+if (process.env.NODE_ENV !== 'production') {
+   app.use(morgan('dev'));
+}
 
-app.use(express.urlencoded({extended: false}))
+// Body parsing middleware
+app.use(express.json({ limit: '1mb' })); 
+app.use(express.urlencoded({ extended: false }));
 
-// middleware to setheaders for api calls
-app.use((req, res , next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Credentials", "true");
-  res.setHeader("Access-Control-Max-Age", "1800");
-  res.setHeader("Access-Control-Allow-Headers", "content-type, Authorization");
-  res.setHeader( "Access-Control-Allow-Methods", "PUT, POST, GET, DELETE, PATCH, OPTIONS" ); 
+// CORS configuration 
+const allowedOrigins = process.env.ALLOWED_ORIGINS 
+  ? process.env.ALLOWED_ORIGINS.split(',') 
+  : ['http://localhost:3000']; 
 
-  next()
-})
-
-//cors config
 app.use(cors({
-  origin: ['https://linklyy.vercel.app'],
-  credentials: true,
-  optionSuccessStatus:200
-}))
+    origin: function(origin, callback) {
+        if (!origin) return callback(null, false);
+        
+        if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+          callback(null, true);
+        } else {
+          callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,
+    optionsSuccessStatus: 200,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
-//express session 
-app.use(
-  session({
-    secret: 'secret',
-    resave: true,
+// Session configuration
+app.use(session({
+    secret: process.env.SESSION_SECRET , 
+    resave: false,
     saveUninitialized: false,
-    
     cookie: {
-      // Session expires after 20 mins of inactivity.
-      expires: 2000000
+      secure: process.env.NODE_ENV === 'production', 
+      httpOnly: true,
+      maxAge: 20 * 60 * 1000, 
+      sameSite: 'lax' 
     }
+}));
 
+// Routes
+app.use('/', authRoutes);
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({
+    error: process.env.NODE_ENV === 'production' 
+      ? 'Something went wrong' 
+      : err.message
+  });
+});
+
+// Database connection with better error handling
+mongoose.connect(mongoURI, { 
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+})
+  .then(() => {
+    console.log('MongoDB connected successfully');
+    
+    app.listen(PORT, () => console.log(`Linkly server running on port ${PORT}`));
   })
-);
+  .catch(err => {
+    console.error('MongoDB connection error:', err);
+    process.exit(1); 
+  });
 
-// // DB config
-const db = require('./config/keys').mongoURI;
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
 
-//connect to Mongo
-mongoose.connect(db, { useNewUrlParser : true ,useUnifiedTopology: true})
-    .then(()=> console.log('MongoDB connected.....'))
-    .catch(err => console.log(err));
-
-
-app.use("/", authRoutes)
-
-const PORT = process.env.port || 3300 ;
-
-app.listen(PORT, () => console.log(`minilink listening on port ${PORT}!`))
-
+module.exports = app; 
