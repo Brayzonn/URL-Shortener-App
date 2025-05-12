@@ -30,8 +30,6 @@ app.use(express.urlencoded({ extended: false }));
 
 // CORS configuration 
 const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS 
-  ? process.env.CORS_ALLOWED_ORIGINS.split(',') 
-  : ['http://localhost:3000']; 
 
 app.use(cors({
     origin: function(origin, callback) {
