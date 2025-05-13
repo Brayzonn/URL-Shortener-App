@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const session = require('express-session');
+const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 const helmet = require('helmet'); 
 const compression = require('compression'); 
@@ -15,6 +16,28 @@ const PORT = process.env.PORT || 4300;
 
 // Security middleware
 app.use(helmet());
+
+// Global API rate limit - 100 requests per hour per IP
+const apiLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, 
+  max: 100, 
+  standardHeaders: true, 
+  legacyHeaders: false, 
+  message: 'Too many requests from this IP, please try again after an hour',
+});
+
+const authLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, 
+  max: 6, // 5 login/register attempts per hour
+  message: 'Too many login attempts, please try again later.'
+});
+
+//limits to auth routes
+app.use('/api/signin', authLimiter);
+app.use('/api/signup', authLimiter);
+
+// Apply to all API routes
+app.use('/api', apiLimiter);
 
 // Compress responses
 app.use(compression());
@@ -51,12 +74,11 @@ app.use(cors({
 app.use(session({
     secret: process.env.SESSION_SECRET , 
     resave: false,
-    saveUninitialized: false,
+    saveUninitialized: true,
     cookie: {
       secure: process.env.NODE_ENV === 'production', 
       httpOnly: true,
-      maxAge: 20 * 60 * 1000, 
-      sameSite: 'lax' 
+      maxAge: 30 * 24 * 60 * 60 * 1000 
     }
 }));
 

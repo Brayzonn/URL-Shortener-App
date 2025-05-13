@@ -5,6 +5,7 @@ const freeLinkSchema = new Schema({
     userIP: String,
     urlCode: String,
     UrlFromUser: String,
+    visitorId: String,
     shortUrl: String,
     clicks: Number,
     status: String,

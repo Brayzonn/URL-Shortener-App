@@ -15,7 +15,7 @@ import { customToastError, customToastSuccess } from '../assets/toastStyles';
 import { FcCheckmark } from "react-icons/fc";
 
 const Landing = () => {
-  const baseURL = process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:3300";
+  const baseURL = process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:4300";
 
   //SWR LOGIC
   const fetcher = (url) => axios.get(url).then(res => res.data)
@@ -279,10 +279,17 @@ const Landing = () => {
                   {/* original link */}
                   {(displayMenu[index] || screenWidth > 891) && <div className='relative z-50 max-w-full h-full flex justify-start items-center space-x-2 '>
                       <div className='shrink-0 w-[29px] h-[29px] flex justify-center items-center bg-[#1f3256] border border-[#1f3256] rounded-[30px]'>
-                         <img src={eachLink.favicon && eachLink.favicon.image ? `data:image/x-icon;base64,${eachLink.favicon.image}` : '/default-favicon.ico'} 
-                         className='w-[20px] h-[20px]'
-                         alt='logo' 
-                         />
+                      <img 
+                          src={eachLink.favicon && eachLink.favicon.image ? 
+                              `data:${eachLink.favicon.mimeType || 'image/x-icon'};base64,${eachLink.favicon.image}` : 
+                              `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEwAACxMBAJqcGAAAAWVJREFUOI2tk7FrwkAUxr97iYkdSiFdHBwKGZzETXBwdnDwP3Bz6tQ/wsFR6NjFsVPnQHBydXMQMnUQSiFDhmtu6BBiNCbn8L7l3ffu++7dHSGE4D+PvFfsdDohx3G+HccZ2bZtCSFeNE17zOfzb8/zvtM0ZVrrR8dxfHRPpVLper1+TJJkEMfxcL1e92u12nscx8MwDAdRFI3CMPw4n887AM+3QC6Xi2+a5jTLsp7rusfD4fBeLBYbjuO82rb9ZhjG1HXdvWVZz6ZpTkej0b7RaIw1TXvUdf3JMIzper3uW5Y1KRQKEwA/Gr0m79PpdBbHMZRSUEqRZdlix3HwvWw220opQYiBEAJKKUzTnAVBgCAIIKXEZrM52rb9ViqVXpRSMMb6JEnQ7XaXa+UNvu+P4zh+OZ1Oh/P5/FGv13dKqbZSqi2EaO33e9RqtR2AZ8bYG2NsyfO8sSzLnwBwr7fQdd0v1tgfsE+WZT90OL+Z9X8BhD/7BpTLYR4wK6lhAAAAAElFTkSuQmCC`}  // Default gray globe icon
+                              className='w-[20px] h-[20px]'
+                              alt='logo'
+                              onError={(e) => {
+                              e.target.onerror = null; 
+                              e.target.src = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEwAACxMBAJqcGAAAAWVJREFUOI2tk7FrwkAUxr97iYkdSiFdHBwKGZzETXBwdnDwP3Bz6tQ/wsFR6NjFsVPnQHBydXMQMnUQSiFDhmtu6BBiNCbn8L7l3ffu++7dHSGE4D+PvFfsdDohx3G+HccZ2bZtCSFeNE17zOfzb8/zvtM0ZVrrR8dxfHRPpVLper1+TJJkEMfxcL1e92u12nscx8MwDAdRFI3CMPw4n887AM+3QC6Xi2+a5jTLsp7rusfD4fBeLBYbjuO82rb9ZhjG1HXdvWVZz6ZpTkej0b7RaIw1TXvUdf3JMIzper3uW5Y1KRQKEwA/Gr0m79PpdBbHMZRSUEqRZdlix3HwvWw220opQYiBEAJKKUzTnAVBgCAIIKXEZrM52rb9ViqVXpRSMMb6JEnQ7XaXa+UNvu+P4zh+OZ1Oh/P5/FGv13dKqbZSqi2EaO33e9RqtR2AZ8bYG2NsyfO8sSzLnwBwr7fQdd0v1tgfsE+WZT90OL+Z9X8BhD/7BpTLYR4wK6lhAAAAAElFTkSuQmCC`; // Same default icon as fallback
+                          }}
+                      />
                       </div>
 
                       <p className='break-all  overflow-hidden w-[100%] text-[13px] text-greyText sm:text-[14px] md:max-w-full'>{eachLink.UrlFromUser}</p>
