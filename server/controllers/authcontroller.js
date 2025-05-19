@@ -136,12 +136,18 @@ module.exports.fetchNonUserLinkData = async (req, res, next) => {
         
         const visitorId = req.session.visitorId;
         
-        const ipList = req.headers['x-forwarded-for'] || 
-                      req.headers['x-real-ip'] || 
-                      req.connection.remoteAddress || 
-                      '127.0.0.1';
-        const rawIP = ipList.split(',')[0].trim();
-        const clientIP = normalizeIP(rawIP);
+        let clientIP = '127.0.0.1';
+        let rawIP = '127.0.0.1';
+        try {
+            const ipList = req.headers['x-forwarded-for'] || 
+                           req.headers['x-real-ip'] || 
+                           req.connection.remoteAddress || 
+                           '127.0.0.1';
+            rawIP = ipList.split(',')[0].trim();
+            clientIP = normalizeIP(rawIP);
+        } catch (ipError) {
+            console.error('Error parsing IP:', ipError);
+        }
         
         let userLinks = [];
         
@@ -185,7 +191,6 @@ module.exports.fetchNonUserLinkData = async (req, res, next) => {
             mimeType: 'image/png'
         };
         
-        // Early return if no links found
         if (userLinks.length === 0) {
             return res.status(200).json({ 
                 userLinks: [], 
@@ -193,7 +198,6 @@ module.exports.fetchNonUserLinkData = async (req, res, next) => {
             });
         }
         
-        // Extract base URL function
         function extractBaseUrl(url) {
             try {
                 if (!url.startsWith('http://') && !url.startsWith('https://')) {
@@ -207,10 +211,8 @@ module.exports.fetchNonUserLinkData = async (req, res, next) => {
             }
         }
         
-        // Improved fetchFavicon function with content-type validation
         async function fetchFavicon(url, link) {
             try {
-                // Use cached favicon if available and not expired
                 if (link.favicon && link.favicon.image && link.faviconLastChecked) {
                     const lastChecked = new Date(link.faviconLastChecked);
                     if ((new Date() - lastChecked) < FAVICON_CACHE_DURATION) {
@@ -238,16 +240,13 @@ module.exports.fetchNonUserLinkData = async (req, res, next) => {
                         });
                         
                         if (faviconResponse.ok) {
-                            // Check content type to ensure it's really an image
                             const contentType = faviconResponse.headers.get('content-type') || '';
                             if (!contentType.includes('image')) {
                                 continue; 
                             }
                             
-                            // Get the binary data
                             const buffer = await faviconResponse.buffer();
                             
-                            // Validate that this is actually an image file (check for HTML content)
                             const firstBytes = buffer.toString('ascii', 0, 20).toLowerCase();
                             if (firstBytes.includes('<!doctype') || 
                                 firstBytes.includes('<html') || 
@@ -255,7 +254,6 @@ module.exports.fetchNonUserLinkData = async (req, res, next) => {
                                 continue;
                             }
                             
-                            // Only store if it's (< 50KB)
                             if (buffer.length < 50 * 1024) {
                                 const imageBase64 = buffer.toString('base64');
                                 
@@ -265,7 +263,6 @@ module.exports.fetchNonUserLinkData = async (req, res, next) => {
                                     mimeType: contentType
                                 };
                                 
-                                // Update favicon in database
                                 await freelinkModel.updateOne(
                                     { _id: link._id },
                                     { 
@@ -289,7 +286,6 @@ module.exports.fetchNonUserLinkData = async (req, res, next) => {
             }
         }
         
-        // Process links to add favicons
         const processedLinks = await Promise.all(userLinks.map(async (link) => {
             try {
                 const favicon = await fetchFavicon(link.UrlFromUser, link);
@@ -298,7 +294,6 @@ module.exports.fetchNonUserLinkData = async (req, res, next) => {
                     favicon
                 };
             } catch (error) {
-                // Use default favicon on error
                 return {
                     ...link.toObject(),
                     favicon: { ...DEFAULT_FAVICON, url: link.UrlFromUser }
@@ -330,9 +325,33 @@ module.exports.shortenLinkForNonUser = async (req, res, next) => {
         
         const visitorId = req.session.visitorId;
         
-        const ipList = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-        const rawIP = ipList.split(',')[0].trim();
-        const clientIP = normalizeIP(rawIP); 
+        let clientIP = '0.0.0.0'; 
+        try {
+            const ipList = 
+                req.headers['x-forwarded-for'] || 
+                req.headers['x-real-ip'] ||
+                req.headers['cf-connecting-ip'] || 
+                req.headers['true-client-ip'] ||  
+                req.headers['x-client-ip'] ||
+                req.connection.remoteAddress;
+                
+            if (ipList) {
+                const rawIP = ipList.split(',')[0].trim();
+                
+                if (process.env.NODE_ENV === 'production' && 
+                    (rawIP === '127.0.0.1' || rawIP === '::1')) {
+                    clientIP = '0.0.0.0-' + Math.random().toString(36).substring(2, 10);
+                } else {
+                    clientIP = normalizeIP(rawIP);
+                }
+                
+                clientIP = `${clientIP}-${visitorId.substring(0, 6)}`;
+
+            }
+        } catch (ipError) {
+            console.error('Error parsing IP:', ipError);
+            clientIP = `unknown-${visitorId.substring(0, 8)}`;
+        }
 
         const { UrlFromUser } = req.body;
         const baseUrl = process.env.SERVER_BASEURL;
@@ -381,7 +400,7 @@ module.exports.shortenLinkForNonUser = async (req, res, next) => {
         console.error('Error shortening URL:', error);
         res.status(500).json({errMsg: 'Server error, please try again'});
     }
-};
+}; 
 
 
 module.exports.redirectNonUserShortenedUrl = async (req, res, next) => {
@@ -391,10 +410,6 @@ module.exports.redirectNonUserShortenedUrl = async (req, res, next) => {
         const linkData = await freelinkModel.findOne({ urlCode: linkCode });
         
         if (linkData) {
-            if (req.session && req.session.visitorId) {
-                console.log(req.session)
-            }
-            
             linkData.clicks += 1;
             await linkData.save();
             res.redirect(`${linkData.UrlFromUser}`);
