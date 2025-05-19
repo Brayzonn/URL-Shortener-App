@@ -1,5 +1,3 @@
-
-// src/components/UrlShortener.js
 import React, { useState, useEffect } from 'react';
 import { Link } from "react-router-dom";
 import { FaLink, FaArrowRight } from "react-icons/fa";
@@ -10,7 +8,6 @@ import { customToastError, customToastSuccess } from '../assets/toastStyles';
 import api from '../api/client';
 
 const UrlShortener = ({ data, mutate }) => {
-  // Screen width state
   const [screenWidth, setScreenWidth] = useState(window.innerWidth);
 
   // Form and button states
@@ -38,7 +35,6 @@ const UrlShortener = ({ data, mutate }) => {
     }
 
     try {
-      // Send form data to backend using our configured API client
       const submitResponse = await api.post('/api/submiturl', {...linkValue});
       const submitData = submitResponse.data;
       

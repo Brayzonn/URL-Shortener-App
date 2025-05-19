@@ -15,6 +15,8 @@ const authRoutes = require('./routes/authroutes');
 const app = express();
 const PORT = process.env.PORT || 4300; 
 
+app.set('trust proxy', 1);
+
 app.use(helmet());
 
 const apiLimiter = rateLimit({
@@ -70,9 +72,9 @@ app.use(session({
         autoRemoveInterval: 60 
     }),
     cookie: {
-        secure: process.env.NODE_ENV === 'production', 
+        secure: true, 
         httpOnly: true,
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', 
+        sameSite: 'none' , 
         maxAge: 30 * 24 * 60 * 60 * 1000 
     }
 }));
@@ -96,10 +98,12 @@ if (process.env.NODE_ENV !== 'production') {
 app.use((req, res, next) => {
   const isAssetRequest = /\.(ico|png|jpg|jpeg|gif|svg|css|js)$/.test(req.path);
   
-  if (!req.session.visitorId && req.method !== 'OPTIONS' && !isAssetRequest) {
-    req.session.visitorId = shortid.generate();
+if (!req.session.visitorId && req.method !== 'OPTIONS' && !isAssetRequest) {
+  req.session.visitorId = shortid.generate();
+  if (process.env.NODE_ENV !== 'production') {
     console.log('New visitor ID created:', req.session.visitorId);
   }
+}
   next();
 });
 
