@@ -75,7 +75,8 @@ app.use(session({
         secure: true, 
         httpOnly: true,
         sameSite: 'none' , 
-        maxAge: 30 * 24 * 60 * 60 * 1000 
+        maxAge: 30 * 24 * 60 * 60 * 1000,
+        path: '/linkly'
     }
 }));
 
@@ -96,14 +97,14 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 app.use((req, res, next) => {
-  const isAssetRequest = /\.(ico|png|jpg|jpeg|gif|svg|css|js)$/.test(req.path);
-  
-if (!req.session.visitorId && req.method !== 'OPTIONS' && !isAssetRequest) {
-  req.session.visitorId = shortid.generate();
-  if (process.env.NODE_ENV !== 'production') {
-    console.log('New visitor ID created:', req.session.visitorId);
+  if (req.path.startsWith('/api') && req.path !== '/api/health' && req.method !== 'OPTIONS') {
+    if (!req.session.visitorId) {
+      req.session.visitorId = shortid.generate();
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('New visitor ID created:', req.session.visitorId);
+      }
+    }
   }
-}
   next();
 });
 
