@@ -116,7 +116,7 @@ const Signin = () => {
                         </div>
                         
                         <input 
-                        type={showPassword ? 'text' : 'password'} // Toggle between 'text' and 'password' based on showPassword state
+                        type={showPassword ? 'text' : 'password'} 
                         name='password'
                         className='bg-[#181E29] px-2 border-[#181E29] border-[1px] rounded-[2px] w-full h-[45px] text-white text-[16px] sm:w-[450px] focus:outline-none focus:border-[#272c36]'
                         onChange={(e)=> setsigninValues({...signinValues, [e.target.name]:e.target.value})}
