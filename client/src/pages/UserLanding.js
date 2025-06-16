@@ -20,7 +20,7 @@ import { customToastError, customToastSuccess } from '../assets/toastStyles';
 import loadingImage from '../images/loading.svg';
 
 const UserLanding = () => {
-    const baseURL = process.env.REACT_APP_API_URL || "http://localhost:3300";
+    const baseURL = process.env.REACT_APP_API_URL;
     const userToken = sessionStorage.getItem('userInfo');
     const navigate = useNavigate();
 
